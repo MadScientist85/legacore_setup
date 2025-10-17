@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lumora-primary: 245 158 11;
+  --lumora-secondary: 251 191 36;
+  --lumora-accent: 252 211 77;
+}

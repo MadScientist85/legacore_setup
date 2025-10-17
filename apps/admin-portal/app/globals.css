@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --admin-primary: 15 23 42;
+  --admin-secondary: 30 41 59;
+  --admin-accent: 59 130 246;
+}

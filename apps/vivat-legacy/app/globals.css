@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --vivat-primary: 5 150 105;
+  --vivat-secondary: 16 185 129;
+  --vivat-accent: 52 211 153;
+}

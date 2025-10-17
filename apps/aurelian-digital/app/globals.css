@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --aurelian-primary: 75 0 130;
+  --aurelian-secondary: 106 13 173;
+  --aurelian-accent: 255 215 0;
+}

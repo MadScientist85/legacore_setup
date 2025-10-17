@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --quorentis-primary: 220 38 38;
+  --quorentis-secondary: 239 68 68;
+  --quorentis-accent: 248 113 113;
+}

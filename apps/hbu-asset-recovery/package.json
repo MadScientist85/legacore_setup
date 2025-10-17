@@ -1,0 +1,33 @@
+{
+  "name": "@hbu/asset-recovery",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hbu/ui": "workspace:*",
+    "@hbu/auth": "workspace:*",
+    "@hbu/config": "workspace:*",
+    "@hbu/database": "workspace:*",
+    "@hbu/ai": "workspace:*",
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next-auth": "^4.24.5",
+    "lucide-react": "^0.302.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.7.2",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
+  }
+}

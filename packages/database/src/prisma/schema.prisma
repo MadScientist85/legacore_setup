@@ -1,0 +1,284 @@
+// Prisma Schema for Multi-tenant Enterprise Architecture
+// Supports: PostgreSQL (Neon, Heroku, Supabase), MongoDB
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NEON_DATABASE_URL")
+}
+
+// ============================================
+// MASTER TABLES (Shared across all series)
+// ============================================
+
+model Company {
+  id                String   @id @default(cuid())
+  legalName         String   // "Humbled Beginnings Unlimited LLC"
+  seriesName        String   @unique // "HBU Asset Recovery", etc.
+  seriesLetter      String   // "A", "B", "C", etc.
+  slug              String   @unique
+  domain            String?  @unique
+  logoUrl           String?
+  primaryColor      String   @default("#4B0082")
+  secondaryColor    String   @default("#FFD700")
+  subscriptionTier  SubscriptionTier @default(PROFESSIONAL)
+  maxAgents         Int      @default(10)
+  maxStorageGB      Int      @default(100)
+  maxMonthlyRequests Int     @default(50000)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  users             User[]
+  agents            Agent[]
+  conversations     Conversation[]
+  documents         Document[]
+  apiKeys           ApiKey[]
+  
+  @@index([slug])
+  @@index([seriesName])
+  @@map("companies")
+}
+
+enum SubscriptionTier {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  phone         String?
+  role          UserRole  @default(USER)
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  isActive      Boolean   @default(true)
+  lastLogin     DateTime?
+  loginCount    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  conversations Conversation[]
+  documents     Document[]
+  apiUsage      ApiUsage[]
+  
+  @@index([email])
+  @@index([companyId])
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+// ============================================
+// AI AGENT SYSTEM
+// ============================================
+
+model Agent {
+  id                String      @id @default(cuid())
+  companyId         String
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name              String
+  slug              String
+  description       String
+  category          String
+  systemPrompt      String      @db.Text
+  model             String      @default("gpt-4o")
+  provider          AiProvider  @default(OPENAI)
+  temperature       Float       @default(0.7)
+  maxTokens         Int         @default(2000)
+  tools             Json?       // JSON array of tool definitions
+  knowledgeBase     Json?       // Vector store references
+  isActive          Boolean     @default(true)
+  version           String      @default("1.0.0")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  conversations     Conversation[]
+  runs              AgentRun[]
+  
+  @@unique([companyId, slug])
+  @@index([companyId])
+  @@index([provider])
+  @@map("agents")
+}
+
+enum AiProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  GROQ
+  XAI
+  OPENROUTER
+  HEROKU_INFERENCE
+}
+
+model AgentRun {
+  id            String      @id @default(cuid())
+  agentId       String
+  agent         Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId        String
+  conversationId String?
+  conversation  Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  input         String      @db.Text
+  output        String?     @db.Text
+  status        RunStatus   @default(PENDING)
+  error         String?     @db.Text
+  provider      AiProvider
+  model         String
+  tokensUsed    Int?
+  durationMs    Int?
+  cost          Float?
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+  
+  @@index([agentId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("agent_runs")
+}
+
+enum RunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// CONVERSATION SYSTEM
+// ============================================
+
+model Conversation {
+  id            String    @id @default(cuid())
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId       String
+  agent         Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  title         String
+  messages      Json      // Array of message objects
+  metadata      Json?
+  status        ConversationStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  runs          AgentRun[]
+  
+  @@index([companyId])
+  @@index([userId])
+  @@index([agentId])
+  @@index([status])
+  @@map("conversations")
+}
+
+enum ConversationStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+// ============================================
+// DOCUMENT MANAGEMENT
+// ============================================
+
+model Document {
+  id            String      @id @default(cuid())
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  type          String      // pdf, docx, txt, etc.
+  size          Int         // bytes
+  url           String
+  storageProvider StorageProvider @default(SUPABASE)
+  storageKey    String
+  mimeType      String
+  metadata      Json?
+  isProcessed   Boolean     @default(false)
+  vectorStoreId String?
+  createdAt     DateTime    @default(now())
+  
+  @@index([companyId])
+  @@index([userId])
+  @@index([storageProvider])
+  @@map("documents")
+}
+
+enum StorageProvider {
+  SUPABASE
+  AWS_S3
+  GOOGLE_DRIVE
+  MONGODB
+}
+
+// ============================================
+// API KEY MANAGEMENT
+// ============================================
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name          String
+  key           String    @unique
+  lastUsed      DateTime?
+  expiresAt     DateTime?
+  isActive      Boolean   @default(true)
+  permissions   Json?     // Array of allowed operations
+  createdAt     DateTime  @default(now())
+  
+  @@index([companyId])
+  @@index([key])
+  @@map("api_keys")
+}
+
+// ============================================
+// USAGE TRACKING & ANALYTICS
+// ============================================
+
+model ApiUsage {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      AiProvider
+  model         String
+  tokensUsed    Int
+  cost          Float
+  requestType   String      // "completion", "embedding", etc.
+  timestamp     DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([provider])
+  @@index([timestamp])
+  @@map("api_usage")
+}
+
+model SystemMetrics {
+  id            String    @id @default(cuid())
+  metricType    String    // "response_time", "success_rate", etc.
+  value         Float
+  provider      String?
+  companyId     String?
+  timestamp     DateTime  @default(now())
+  metadata      Json?
+  
+  @@index([metricType])
+  @@index([timestamp])
+  @@map("system_metrics")
+}

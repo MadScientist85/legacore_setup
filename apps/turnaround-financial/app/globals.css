@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --turnaround-primary: 124 58 237;
+  --turnaround-secondary: 139 92 246;
+  --turnaround-accent: 167 139 250;
+}

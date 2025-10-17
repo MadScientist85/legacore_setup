@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hbu-primary: 30 64 175;
+  --hbu-secondary: 59 130 246;
+  --hbu-accent: 96 165 250;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
