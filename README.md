@@ -1,6 +1,6 @@
 <!-- Banner / Hero Image -->
 <p align="center">
-  <img src="https://manifesting-greatness-legacore-platform-legacore.vercel.app/public/grok_image_xiledv2.jpg" alt="LEGACORE™ Banner" style="max-width:100%; border-radius:8px;" />
+  <img src="https://raw.githubusercontent.com/MadScientist85/legacore_setup/refs/heads/main/public/grok_image_xiledv2.jpg" alt="LEGACORE™ Banner" style="max-width:100%; border-radius:8px;" />
 </p>
 
 # Hi, I’m **David Daniels** 👋  
